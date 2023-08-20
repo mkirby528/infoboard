@@ -6,18 +6,7 @@ from src.metro_api import MetroApi
 from src.config import config
 
 
-class TrainBoard:
-    """
-        get_new_data is a function that is expected to return an array of dictionaries like this:
-
-        [
-            {
-                'line_color': 0xFFFFFF,
-                'destination': 'Dest Str',
-                'arrival': '5'
-            }
-        ]
-    """
+class TrainBoard():
     def __init__(self, wifi):
         self.display = Matrix().display
         self.parent_group = displayio.Group(scale=1, x=0, y=3)
@@ -29,8 +18,6 @@ class TrainBoard:
         self.trains = []
         for i in range(config['num_trains']):
             self.trains.append(Train(self.parent_group, i))
-
-        self.display.show(self.parent_group)
         self.STATION_CODES = config['metro_station_codes']
         self.TRAIN_GROUPS_1 = list(zip(self.STATION_CODES, config['train_groups_1']))
         self.TRAIN_GROUPS_2 = list(zip(self.STATION_CODES, config['train_groups_2']))
@@ -38,11 +25,9 @@ class TrainBoard:
 
         self.api = MetroApi()
         self.wifi = wifi
-       
-    def run_board(self) -> None:
-        while True:
-            self.refresh()
-            
+
+    def show(self):
+        self.display.show(self.parent_group)       
     def refresh(self) -> bool:
         print('Refreshing train information...')
         train_data = self.api.refresh_trains(self.wifi)
@@ -57,7 +42,6 @@ class TrainBoard:
             print('Successfully updated.')
         else:
             print('No data received. Clearing display.')
-
             for i in range(config['num_trains']):
                 self._hide_train(i)
 

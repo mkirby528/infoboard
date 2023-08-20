@@ -1,8 +1,8 @@
 from src.config import config
 from src.train_board import TrainBoard
-from src.metro_api import MetroApi, MetroApiOnFireException
+from src.weather_board import WeatherBoard
 from src.wifi import init_wifi
-from adafruit_datetime import datetime, timedelta
+from adafruit_datetime import datetime
 
 
 import board
@@ -19,29 +19,22 @@ button_up = Debouncer(pin_up)
 
 
 wifi = init_wifi()
-train_board = TrainBoard(wifi)
-mode = 1
+mode = 0
+boards = [TrainBoard(wifi), WeatherBoard(wifi)]
+
 
 next_refresh = datetime.now()
-
 while True:
-    
+
     button_up.update()
     button_down.update()
+    mode_changed = False
     if button_up.fell:
-        mode += 1 
+        mode = 0 if mode == len(boards) - 1 else mode + 1
+        mode_changed = True
         print(mode)
     if button_down.fell:
-        mode -= 1 
+        mode = len(boards) - 1 if mode == 0 else mode - 1
+        mode_changed = True
         print(mode)
-    
-    if mode == 1 and datetime.now() >= next_refresh:
-        print("Refreshing the board.....")
-        upated_successful = train_board.refresh()
-        time_change = timedelta(seconds=config["refresh_interval"])
-        next_refresh = datetime.now() + time_change
-        print(f"Next refresh at {next_refresh}")
-       
-      
-        
-
+    boards[mode].show()
