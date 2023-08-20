@@ -9,13 +9,18 @@ class MetroApiOnFireException(Exception):
 class MetroApi:
     def __init__(self) -> None:
         self.STATION_CODES = config['metro_station_codes']
-        TRAIN_GROUPS_1 = list(zip(self.STATION_CODES, config['train_groups_1']))
-        TRAIN_GROUPS_2 = list(zip(self.STATION_CODES, config['train_groups_2'])) if config['swap_train_groups'] else TRAIN_GROUPS_1
-        self.TRAIN_GROUPS = TRAIN_GROUPS_1
+        self.TRAIN_GROUPS_1 = list(zip(self.STATION_CODES, config['train_groups_1']))
+        self.TRAIN_GROUPS_2 = list(zip(self.STATION_CODES, config['train_groups_2']))
+        self.TRAIN_GROUPS = self.TRAIN_GROUPS_1
     
-    def refresh_trains(self, train_groups: list,wifi) -> [dict]:
+    def refresh_trains(self,wifi) -> [dict]:
         try:
-            trains = self.fetch_train_predictions(wifi, self.STATION_CODES, train_groups)
+            trains = self.fetch_train_predictions(wifi, self.STATION_CODES, self.TRAIN_GROUPS)
+            if self.TRAIN_GROUPS == self.TRAIN_GROUPS_1:
+                self.TRAIN_GROUPS = self.TRAIN_GROUPS_2
+            else:
+                self.TRAIN_GROUPS = self.TRAIN_GROUPS_1
+
         except MetroApiOnFireException:
             print(config['source_api'] + ' API might be on fire. Resetting wifi ...')
             wifi.reset()
@@ -27,7 +32,7 @@ class MetroApi:
 
     def _fetch_train_predictions(self, wifi, station_codes, groups,retry_attempt: int) -> [dict]:
         try:
-            print('Fetching metro info...')
+            print(f'Fetching metro info... for train group {groups}')
             start = time.time()
 
             if config['source_api'] == 'WMATA':

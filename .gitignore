@@ -165,4 +165,3 @@ cython_debug/
 .Trashes
 boot_out.txt
 
-src/config.py

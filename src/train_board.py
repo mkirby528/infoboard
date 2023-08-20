@@ -4,7 +4,6 @@ from adafruit_display_text.label import Label
 from adafruit_matrixportal.matrix import Matrix
 from src.metro_api import MetroApi
 from src.config import config
-import time
 
 
 class TrainBoard:
@@ -38,18 +37,15 @@ class TrainBoard:
         self.train_groups = self.TRAIN_GROUPS_1
 
         self.api = MetroApi()
-        self.get_new_data = lambda: self.api.refresh_trains(self.train_groups,wifi)
-
         self.wifi = wifi
        
     def run_board(self) -> None:
         while True:
             self.refresh()
-            self.turn_on_display()
-            time.sleep(config["refresh_interval"])
+            
     def refresh(self) -> bool:
         print('Refreshing train information...')
-        train_data = self.get_new_data()
+        train_data = self.api.refresh_trains(self.wifi)
         if train_data is not None:
             print('Reply received.')
             for i in range(config['num_trains']):
@@ -71,11 +67,6 @@ class TrainBoard:
     def _update_train(self, index: int, line_color: int, destination: str, minutes: str):
         self.trains[index].update(line_color, destination, minutes)
 
-    def turn_off_display(self):
-        self.display.brightness = 0
-
-    def turn_on_display(self):
-        self.display.brightness = 1
 
 class Train:
     def __init__(self, parent_group, index):
