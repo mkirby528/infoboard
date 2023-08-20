@@ -2,8 +2,10 @@ import displayio
 from adafruit_display_shapes.rect import Rect
 from adafruit_display_text.label import Label
 from adafruit_matrixportal.matrix import Matrix
-
+from src.metro_api import MetroApi
 from src.config import config
+import time
+
 
 class TrainBoard:
     """
@@ -17,11 +19,9 @@ class TrainBoard:
             }
         ]
     """
-    def __init__(self, get_new_data):
-        self.get_new_data = get_new_data
+    def __init__(self, wifi):
         self.display = Matrix().display
         self.parent_group = displayio.Group(scale=1, x=0, y=3)
-
         self.heading_label = Label(config['font'], anchor_point=(0,0))
         self.heading_label.color = config['heading_color']
         self.heading_label.text=config['heading_text']
@@ -32,7 +32,21 @@ class TrainBoard:
             self.trains.append(Train(self.parent_group, i))
 
         self.display.show(self.parent_group)
+        self.STATION_CODES = config['metro_station_codes']
+        self.TRAIN_GROUPS_1 = list(zip(self.STATION_CODES, config['train_groups_1']))
+        self.TRAIN_GROUPS_2 = list(zip(self.STATION_CODES, config['train_groups_2']))
+        self.train_groups = self.TRAIN_GROUPS_1
 
+        self.api = MetroApi()
+        self.get_new_data = lambda: self.api.refresh_trains(self.train_groups,wifi)
+
+        self.wifi = wifi
+       
+    def run_board(self) -> None:
+        while True:
+            self.refresh()
+            self.turn_on_display()
+            time.sleep(config["refresh_interval"])
     def refresh(self) -> bool:
         print('Refreshing train information...')
         train_data = self.get_new_data()

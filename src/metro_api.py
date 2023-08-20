@@ -12,6 +12,7 @@ class MetroApi:
         TRAIN_GROUPS_1 = list(zip(self.STATION_CODES, config['train_groups_1']))
         TRAIN_GROUPS_2 = list(zip(self.STATION_CODES, config['train_groups_2'])) if config['swap_train_groups'] else TRAIN_GROUPS_1
         self.TRAIN_GROUPS = TRAIN_GROUPS_1
+    
     def refresh_trains(self, train_groups: list,wifi) -> [dict]:
         try:
             trains = self.fetch_train_predictions(wifi, self.STATION_CODES, train_groups)
